@@ -15,6 +15,9 @@ public class Game1 : Game
     private Texture2D _wallTexture = null!;
     private Texture2D _pelletTexture = null!;
 
+    private Player _player = new();
+    private Texture2D _playerTexture = null!;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -38,6 +41,10 @@ public class Game1 : Game
 
         // temporary debug check — remove later!!!!!!!
         Console.WriteLine($"Maze loaded: {_maze.Rows} rows, {_maze.Cols} cols");
+
+        // set player position
+        _player.X = 9 * MazeGraph.TileSize;
+        _player.Y = 15 * MazeGraph.TileSize;
     }
 
     protected override void LoadContent()
@@ -50,6 +57,9 @@ public class Game1 : Game
 
         _pelletTexture = new Texture2D(GraphicsDevice, 1, 1);
         _pelletTexture.SetData(new[] { Color.White });
+
+        _playerTexture = new Texture2D(GraphicsDevice, 1, 1);
+        _playerTexture.SetData(new[] { Color.Yellow });
     }
 
     protected override void Update(GameTime gameTime)
@@ -58,6 +68,15 @@ public class Game1 : Game
             Exit();
 
         base.Update(gameTime);
+
+        var kb = Keyboard.GetState();
+
+        if (kb.IsKeyDown(Keys.Left)) { _player.NextDirX = -1; _player.NextDirY = 0; }
+        if (kb.IsKeyDown(Keys.Right)) { _player.NextDirX = 1; _player.NextDirY = 0; }
+        if (kb.IsKeyDown(Keys.Up)) { _player.NextDirX = 0; _player.NextDirY = -1; }
+        if (kb.IsKeyDown(Keys.Down)) { _player.NextDirX = 0; _player.NextDirY = 1; }
+
+        _player.Update(_maze, MazeGraph.TileSize);
     }
 
     protected override void Draw(GameTime gameTime)
@@ -90,6 +109,13 @@ public class Game1 : Game
                 }
             }
         }
+
+        var playerRect = new Rectangle(
+            (int)_player.X + 2,
+            (int)_player.Y + 2,
+            MazeGraph.TileSize - 4,
+            MazeGraph.TileSize - 4);
+            _spriteBatch.Draw(_playerTexture, playerRect, Color.Yellow);
 
         _spriteBatch.End();
 
