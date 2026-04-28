@@ -23,6 +23,9 @@ public class Game1 : Game
     private Services.ScoreManager _scoreManager = new();
     private Dictionary<string, int> _highScores = new();
 
+    private List<Ghost> _ghosts = new();
+    private Texture2D _ghostTexture = null!;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -45,11 +48,17 @@ public class Game1 : Game
         _maze.Load("Content/Levels/level1.txt");
 
         // temporary debug check — remove later!!!!!!!
-        Console.WriteLine($"Maze loaded: {_maze.Rows} rows, {_maze.Cols} cols");
+        // Console.WriteLine($"Maze loaded: {_maze.Rows} rows, {_maze.Cols} cols");
 
         // set player position
         _player.X = 9 * MazeGraph.TileSize;
         _player.Y = 15 * MazeGraph.TileSize;
+
+        // ghosts
+        _ghosts.Add(new Ghost(9 * MazeGraph.TileSize, 8 * MazeGraph.TileSize, Color.Red));
+        _ghosts.Add(new Ghost(10 * MazeGraph.TileSize, 8 * MazeGraph.TileSize, Color.Pink));
+        _ghosts.Add(new Ghost(9 * MazeGraph.TileSize, 9 * MazeGraph.TileSize, Color.Cyan));
+        _ghosts.Add(new Ghost(10 * MazeGraph.TileSize, 9 * MazeGraph.TileSize, Color.Orange));
     }
 
     protected override void LoadContent()
@@ -69,6 +78,9 @@ public class Game1 : Game
         // fonts and high scores
         _scoreFont = Content.Load<SpriteFont>("FontScore");
         _highScores = _scoreManager.LoadScores();
+
+        _ghostTexture = new Texture2D(GraphicsDevice, 1, 1);
+        _ghostTexture.SetData(new[] { Color.White });
     }
 
     protected override void Update(GameTime gameTime)
@@ -91,6 +103,32 @@ public class Game1 : Game
         var (tx, ty) = _player.TilePosition(MazeGraph.TileSize);
         if (_maze.EatPellet(tx, ty))
             _player.Score += 10;
+
+        var playerTile = _player.TilePosition(MazeGraph.TileSize);
+        float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        foreach (var ghost in _ghosts)
+        {
+            ghost.Update(_maze, playerTile, MazeGraph.TileSize, delta);
+
+            // check collision with player
+            var ghostTile = ghost.TilePosition(MazeGraph.TileSize);
+            if (ghostTile == playerTile)
+            {
+                if (ghost.State == Ghost.GhostState.Frightened)
+                {
+                    ghost.State = Ghost.GhostState.Eaten;
+                    _player.Score += 200;
+                }
+                else if (ghost.State == Ghost.GhostState.Normal)
+                {
+                    _player.Lives--;
+                    // reset positions
+                    _player.X = 9 * MazeGraph.TileSize;
+                    _player.Y = 15 * MazeGraph.TileSize;
+                }
+            }
+        }
 
         // save key
         if (kb.IsKeyDown(Keys.Enter))
@@ -145,6 +183,20 @@ public class Game1 : Game
             $"Score: {_player.Score}   Lives: {_player.Lives}   Hi: {(_highScores.ContainsKey("Player") ? _highScores["Player"] : 0)}",
             new Vector2(8, 8),
             Color.White);
+
+        foreach (var ghost in _ghosts)
+        {
+            var ghostColor = ghost.State == Ghost.GhostState.Frightened
+                ? Color.Blue
+                : ghost.GhostColor;
+
+            var ghostRect = new Rectangle(
+                (int)ghost.X + 2,
+                (int)ghost.Y + 2,
+                MazeGraph.TileSize - 4,
+                MazeGraph.TileSize - 4);
+            _spriteBatch.Draw(_ghostTexture, ghostRect, ghostColor);
+        }
 
         _spriteBatch.End();
 
