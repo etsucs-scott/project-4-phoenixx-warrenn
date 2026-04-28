@@ -68,15 +68,41 @@ public class MazeGraph
         }
     }
 
+    // tracks which pellets have been eaten
+    private HashSet<(int x, int y)> _eatenPellets = new();
+
 
     /// returns walkable neighbors of a given tile position
-
     public List<(int x, int y)> GetNeighbors((int x, int y) pos)
         => _adjacency.TryGetValue(pos, out var n) ? n : new();
 
 
     /// returns true if the tile at (x, y) is walkable (not a wall)
-
     public bool IsWalkable(int x, int y)
         => x >= 0 && y >= 0 && x < Cols && y < Rows && Tiles[y, x] != '#';
+
+    /// returns true if this tile has a pellet that hasn't been eaten yet
+    public bool HasPellet(int x, int y)
+        => Tiles[y, x] == '.' && !_eatenPellets.Contains((x, y));
+
+
+    /// marks a pellet as eaten. Returns true if a pellet was actually there
+    public bool EatPellet(int x, int y)
+    {
+        if (HasPellet(x, y))
+        {
+            _eatenPellets.Add((x, y));
+            return true;
+        }
+        return false;
+    }
+
+    /// returns true if all pellets have been eaten
+    public bool AllPelletsEaten()
+    {
+        for (int y = 0; y < Rows; y++)
+            for (int x = 0; x < Cols; x++)
+                if (HasPellet(x, y)) return false;
+        return true;
+    }
 }

@@ -77,6 +77,11 @@ public class Game1 : Game
         if (kb.IsKeyDown(Keys.Down)) { _player.NextDirX = 0; _player.NextDirY = 1; }
 
         _player.Update(_maze, MazeGraph.TileSize);
+
+        // check if player is on a pellet tile
+        var (tx, ty) = _player.TilePosition(MazeGraph.TileSize);
+        if (_maze.EatPellet(tx, ty))
+            _player.Score += 10;
     }
 
     protected override void Draw(GameTime gameTime)
@@ -99,12 +104,14 @@ public class Game1 : Game
                         _spriteBatch.Draw(_wallTexture, rect, Color.DarkBlue);
                         break;
                     case '.':
-                        // draw small pellet dot in center of tile
-                        var pelletRect = new Rectangle(
-                            x * tileSize + tileSize / 2 - 3,
-                            y * tileSize + tileSize / 2 - 3,
-                            6, 6);
-                        _spriteBatch.Draw(_pelletTexture, pelletRect, Color.White);
+                        if (_maze.HasPellet(x, y))
+                        {
+                            var pelletRect = new Rectangle(
+                                x * tileSize + tileSize / 2 - 3,
+                                y * tileSize + tileSize / 2 - 3,
+                                6, 6);
+                            _spriteBatch.Draw(_pelletTexture, pelletRect, Color.White);
+                        }
                         break;
                 }
             }
