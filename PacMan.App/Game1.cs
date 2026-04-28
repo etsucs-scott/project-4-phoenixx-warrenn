@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -17,6 +18,10 @@ public class Game1 : Game
 
     private Player _player = new();
     private Texture2D _playerTexture = null!;
+
+    private SpriteFont _scoreFont = null!;
+    private Services.ScoreManager _scoreManager = new();
+    private Dictionary<string, int> _highScores = new();
 
     public Game1()
     {
@@ -60,6 +65,10 @@ public class Game1 : Game
 
         _playerTexture = new Texture2D(GraphicsDevice, 1, 1);
         _playerTexture.SetData(new[] { Color.Yellow });
+
+        // fonts and high scores
+        _scoreFont = Content.Load<SpriteFont>("FontScore");
+        _highScores = _scoreManager.LoadScores();
     }
 
     protected override void Update(GameTime gameTime)
@@ -82,6 +91,13 @@ public class Game1 : Game
         var (tx, ty) = _player.TilePosition(MazeGraph.TileSize);
         if (_maze.EatPellet(tx, ty))
             _player.Score += 10;
+
+        // save key
+        if (kb.IsKeyDown(Keys.Enter))
+        {
+            _highScores["Player"] = _player.Score;
+            _scoreManager.SaveScores(_highScores);
+        }
     }
 
     protected override void Draw(GameTime gameTime)
@@ -123,6 +139,12 @@ public class Game1 : Game
             MazeGraph.TileSize - 4,
             MazeGraph.TileSize - 4);
             _spriteBatch.Draw(_playerTexture, playerRect, Color.Yellow);
+
+        _spriteBatch.DrawString(
+            _scoreFont,
+            $"Score: {_player.Score}   Lives: {_player.Lives}   Hi: {(_highScores.ContainsKey("Player") ? _highScores["Player"] : 0)}",
+            new Vector2(8, 8),
+            Color.White);
 
         _spriteBatch.End();
 
