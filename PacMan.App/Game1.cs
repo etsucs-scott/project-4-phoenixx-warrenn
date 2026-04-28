@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PacMan.App.Models;
@@ -79,7 +80,7 @@ public class Game1 : Game
                         _spriteBatch.Draw(_wallTexture, rect, Color.DarkBlue);
                         break;
                     case '.':
-                        // Draw small pellet dot in center of tile
+                        // draw small pellet dot in center of tile
                         var pelletRect = new Rectangle(
                             x * tileSize + tileSize / 2 - 3,
                             y * tileSize + tileSize / 2 - 3,
