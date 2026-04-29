@@ -8,10 +8,14 @@ namespace PacMan.App.Services;
 /// handles saving and loading high scores to/from a JSON file
 public class ScoreManager
 {
-    private readonly string _scorePath = "scores.json";
+    private readonly string _scorePath;
 
-
-    /// saves scores dictionary to JSON file
+    /// constructor accepts a custom path, defaults to scores.json
+    
+    public ScoreManager(string path = "scores.json")
+    {
+        _scorePath = path;
+    }
     public void SaveScores(Dictionary<string, int> scores)
     {
         try
@@ -24,7 +28,6 @@ public class ScoreManager
             Console.WriteLine($"Could not save scores: {ex.Message}");
         }
     }
-
 
     /// loads scores from JSON file + returns empty dictionary if file doesn't exist
 
